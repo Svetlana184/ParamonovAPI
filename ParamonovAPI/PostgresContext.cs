@@ -26,7 +26,7 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<SpecificationItem> SpecificationItems { get; set; }
 
-    public virtual DbSet<Task> Tasks { get; set; }
+    public virtual DbSet<Models.Task> Tasks { get; set; }
 
     public virtual DbSet<TaskList> TaskLists { get; set; }
 
@@ -184,7 +184,7 @@ public partial class PostgresContext : DbContext
                 .HasConstraintName("fk_item_spec");
         });
 
-        modelBuilder.Entity<Task>(entity =>
+        modelBuilder.Entity<Models.Task>(entity =>
         {
             entity.HasKey(e => e.IdTask).HasName("task_pkey");
 

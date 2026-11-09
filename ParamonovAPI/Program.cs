@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ParamonovAPI;
+using ParamonovAPI.Models;
+using ParamonovAPI.Services;
 using System.Text;
+using TaskModel = ParamonovAPI.Models.Task;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
         };
     });
+
+builder.Services.AddScoped<IService<Company>, CompanyService>();
+builder.Services.AddScoped<IService<Team>, TeamService>();
+builder.Services.AddScoped<IService<User>, UserService>();
+builder.Services.AddScoped<IService<Project>, ProjectService>();
+builder.Services.AddScoped<IService<TechnicalSpecification>, TechnicalSpecificationService>();
+builder.Services.AddScoped<IService<SpecificationItem>, SpecificationItemService>();
+builder.Services.AddScoped<IService<Invoice>, InvoiceService>();
+builder.Services.AddScoped<IService<TaskList>, TaskListService>();
+builder.Services.AddScoped<IService<TaskModel>, TaskService>();
+builder.Services.AddScoped<IService<ChangeRequest>, ChangeRequestService>();
+
 
 var app = builder.Build();
 

@@ -20,8 +20,8 @@ namespace ParamonovAPI.Services
 
         public async Task Create(TaskModel item)
         {
-            //await _context.Tasks.AddAsync(item);
-            //await _context.SaveChangesAsync();
+            await _context.Tasks.AddAsync(item);
+            await _context.SaveChangesAsync();
         }
 
         public async Task Update(TaskModel item)
