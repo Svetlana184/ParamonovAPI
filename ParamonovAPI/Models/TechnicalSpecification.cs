@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -16,7 +17,9 @@ public partial class TechnicalSpecification
 
     public string? Description { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual Project IdProjectNavigation { get; set; } = null!;
     [JsonIgnore]
+    [ValidateNever]
     public virtual ICollection<SpecificationItem> SpecificationItems { get; set; } = new List<SpecificationItem>();
 }

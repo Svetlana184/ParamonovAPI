@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using ParamonovAPI;
 using ParamonovAPI.Models;
 using ParamonovAPI.Services;
@@ -12,12 +13,21 @@ using TaskModel = ParamonovAPI.Models.Task;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(
+        new System.Text.Json.Serialization.JsonStringEnumConverter());
+}); ;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<PostgresContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.MapEnum<ProjectStatus>("project_status")));
+
+//var dataSourceBuilder = new NpgsqlDataSourceBuilder("DefaultConnection");
+//dataSourceBuilder.MapEnum<ProjectStatus>("project_status");
+//var dataSource = dataSourceBuilder.Build();
 
 // ===== Регистрация сервисов =====
 builder.Services.AddScoped<IService<Company>, CompanyService>();
@@ -104,7 +114,8 @@ app.MapPost("/login", async (LoginDto dto, PostgresContext db) =>
         access_token = encodedJwt,
         login = user.Login,
         role = user.Role.ToString(),
-        id_user = user.IdUser
+        id_user = user.IdUser,
+        id_team = user.IdTeam
     });
 });
 

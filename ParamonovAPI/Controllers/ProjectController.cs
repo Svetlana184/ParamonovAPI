@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ParamonovAPI.Models;
 using ParamonovAPI.Services;
+using System.Security.Claims;
 
 namespace ParamonovAPI.Controllers
 {
@@ -9,12 +11,43 @@ namespace ParamonovAPI.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IService<Project> _service;
+        private readonly PostgresContext _context;
 
-        public ProjectController(IService<Project> service) => _service = service;
+        public ProjectController(IService<Project> service, PostgresContext context)
+        {
+            _service = service;
+            _context = context;
+        }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Project>>> GetAll()
             => Ok(await _service.GetAll());
+
+        [HttpGet("my")]
+        public async Task<ActionResult<IEnumerable<Project>>> GetMyProjects()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return Unauthorized();
+
+            IQueryable<Project> query = _context.Projects;
+
+            if (user.Role == "customer")
+            {
+                query = query.Where(p => p.IdCustomer == userId);
+            }
+            else
+            {
+                if (user.IdTeam == null) return Ok(new List<Project>());
+                int teamId = user.IdTeam.Value;
+                query = query.Where(p => p.IdTeam == teamId);
+            }
+
+            return Ok(await query.AsNoTracking().ToListAsync());
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Project>> GetById(int id)

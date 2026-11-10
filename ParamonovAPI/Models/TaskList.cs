@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -14,7 +15,9 @@ public partial class TaskList
 
     public decimal CompletionPercent { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual Invoice IdInvoiceNavigation { get; set; } = null!;
     [JsonIgnore]
+    [ValidateNever]
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
 }

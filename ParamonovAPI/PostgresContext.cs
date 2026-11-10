@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using ParamonovAPI.Models;
+using Task = ParamonovAPI.Models.Task;
 
 namespace ParamonovAPI;
 
@@ -149,6 +150,9 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IdCustomer).HasColumnName("id_customer");
             entity.Property(e => e.IdTeam).HasColumnName("id_team");
+            entity.Property(e => e.Status).HasColumnName("status")
+                .HasColumnType("project_status");
+                //.HasConversion<string>();
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
@@ -184,7 +188,7 @@ public partial class PostgresContext : DbContext
                 .HasConstraintName("fk_item_spec");
         });
 
-        modelBuilder.Entity<Models.Task>(entity =>
+        modelBuilder.Entity<Task>(entity =>
         {
             entity.HasKey(e => e.IdTask).HasName("task_pkey");
 

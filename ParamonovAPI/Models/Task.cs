@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -20,9 +21,12 @@ public partial class Task
 
     public int? IdDeveloper { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
     [JsonIgnore]
+    [ValidateNever]
     public virtual User? IdDeveloperNavigation { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual TaskList IdTaskListNavigation { get; set; } = null!;
 }

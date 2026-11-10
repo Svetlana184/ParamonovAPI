@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -24,13 +25,18 @@ public partial class ChangeRequest
 
     public int? IdApprover { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual User? IdApproverNavigation { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual User IdCreatorNavigation { get; set; } = null!;
     [JsonIgnore]
+    [ValidateNever]
     public virtual Invoice? IdInvoiceNavigation { get; set; }
     [JsonIgnore]
+    [ValidateNever]
     public virtual SpecificationItem IdSpecItemNavigation { get; set; } = null!;
     [JsonIgnore]
+    [ValidateNever]
     public virtual Task? IdTaskNavigation { get; set; }
 }
