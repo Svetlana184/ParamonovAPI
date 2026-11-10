@@ -302,6 +302,12 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.LastName)
                 .HasMaxLength(100)
                 .HasColumnName("last_name");
+            entity.Property(u => u.Role)
+                .HasColumnName("role")
+                .HasConversion<string>();
+            entity.Property(u => u.Role)
+                .HasColumnName("role")
+                .HasColumnType("dev_team.user_role");
             entity.Property(e => e.Login)
                 .HasMaxLength(100)
                 .HasColumnName("login");

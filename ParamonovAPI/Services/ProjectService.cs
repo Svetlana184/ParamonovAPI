@@ -17,7 +17,7 @@ namespace ParamonovAPI.Services
             => await _context.Projects.ToListAsync();
 
         public async Task<Project> GetById(int id)
-            => await _context.Projects.FindAsync(id);
+            => await _context.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.IdProject == id);
 
         public async Task Create(Project item)
         {

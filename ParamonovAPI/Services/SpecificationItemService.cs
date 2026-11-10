@@ -17,7 +17,10 @@ namespace ParamonovAPI.Services
             => await _context.SpecificationItems.ToListAsync();
 
         public async Task<SpecificationItem> GetById(int id)
-            => await _context.SpecificationItems.FindAsync(id);
+            => await _context.SpecificationItems
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.IdItem == id);
+
 
         public async Task Create(SpecificationItem item)
         {

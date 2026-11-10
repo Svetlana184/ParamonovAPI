@@ -17,7 +17,8 @@ namespace ParamonovAPI.Services
             => await _context.Invoices.ToListAsync();
 
         public async Task<Invoice> GetById(int id)
-            => await _context.Invoices.FindAsync(id);
+             => await _context.Invoices.AsNoTracking().FirstOrDefaultAsync(i => i.IdInvoice == id);
+
 
         public async Task Create(Invoice item)
         {

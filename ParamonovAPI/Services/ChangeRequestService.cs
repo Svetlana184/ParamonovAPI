@@ -17,7 +17,7 @@ namespace ParamonovAPI.Services
             => await _context.ChangeRequests.ToListAsync();
 
         public async Task<ChangeRequest> GetById(int id)
-            => await _context.ChangeRequests.FindAsync(id);
+            => await _context.ChangeRequests.AsNoTracking().FirstOrDefaultAsync(c => c.IdChange == id);
 
         public async Task Create(ChangeRequest item)
         {

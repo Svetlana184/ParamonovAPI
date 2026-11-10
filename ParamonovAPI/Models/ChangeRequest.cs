@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace ParamonovAPI.Models;
@@ -22,14 +23,14 @@ public partial class ChangeRequest
     public int IdCreator { get; set; }
 
     public int? IdApprover { get; set; }
-
+    [JsonIgnore]
     public virtual User? IdApproverNavigation { get; set; }
-
+    [JsonIgnore]
     public virtual User IdCreatorNavigation { get; set; } = null!;
-
+    [JsonIgnore]
     public virtual Invoice? IdInvoiceNavigation { get; set; }
-
+    [JsonIgnore]
     public virtual SpecificationItem IdSpecItemNavigation { get; set; } = null!;
-
+    [JsonIgnore]
     public virtual Task? IdTaskNavigation { get; set; }
 }

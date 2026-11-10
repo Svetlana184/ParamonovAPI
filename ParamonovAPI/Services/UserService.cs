@@ -17,7 +17,7 @@ namespace ParamonovAPI.Services
             => await _context.Users.ToListAsync();
 
         public async Task<User> GetById(int id)
-            => await _context.Users.FindAsync(id);
+           => await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.IdUser == id);
 
         public async Task Create(User item)
         {

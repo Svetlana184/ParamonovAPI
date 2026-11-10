@@ -17,7 +17,7 @@ namespace ParamonovAPI.Services
             => await _context.Teams.ToListAsync();
 
         public async Task<Team> GetById(int id)
-            => await _context.Teams.FindAsync(id);
+            => await _context.Teams.AsNoTracking().FirstOrDefaultAsync(t => t.IdTeam == id);
 
         public async Task Create(Team item)
         {
