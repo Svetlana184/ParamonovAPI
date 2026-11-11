@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+п»їusing Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
@@ -21,15 +21,20 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConection");
+
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<PostgresContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        o => o.MapEnum<ProjectStatus>("project_status")));
+    options.UseNpgsql(dataSource));
 
 //var dataSourceBuilder = new NpgsqlDataSourceBuilder("DefaultConnection");
 //dataSourceBuilder.MapEnum<ProjectStatus>("project_status");
 //var dataSource = dataSourceBuilder.Build();
 
-// ===== Регистрация сервисов =====
+// ===== Р РµРіРёСЃС‚СЂР°С†РёСЏ СЃРµСЂРІРёСЃРѕРІ =====
 builder.Services.AddScoped<IService<Company>, CompanyService>();
 builder.Services.AddScoped<IService<Team>, TeamService>();
 builder.Services.AddScoped<IService<User>, UserService>();
@@ -123,7 +128,7 @@ app.MapPost("/login", async (LoginDto dto, PostgresContext db) =>
 app.MapPost("/register", async (RegisterDto dto, PostgresContext db) =>
 {
     if (await db.Users.AnyAsync(u => u.Login == dto.Login))
-        return Results.BadRequest(new { error = "Логин уже занят" });
+        return Results.BadRequest(new { error = "Р›РѕРіРёРЅ СѓР¶Рµ Р·Р°РЅСЏС‚" });
 
     var user = new User
     {
@@ -150,10 +155,31 @@ app.MapPost("/register", async (RegisterDto dto, PostgresContext db) =>
 
 app.MapControllers();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PostgresContext>();
+    var conn = db.Database.GetDbConnection();
+    await conn.OpenAsync();
+
+    var cmd = conn.CreateCommand();
+    cmd.CommandText = "SELECT typname, nspname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE t.typtype = 'e'";
+    using (var reader = await cmd.ExecuteReaderAsync())
+    {
+        while (await reader.ReadAsync())
+        {
+            Console.WriteLine("ENUM: " + reader.GetString(1) + "." + reader.GetString(0));
+        }
+    }
+
+    await conn.CloseAsync();
+}
+
+
 app.Run();
 
 // =====================================================
-// DTO для логина и регистрации
+// DTO РґР»СЏ Р»РѕРіРёРЅР° Рё СЂРµРіРёСЃС‚СЂР°С†РёРё
 // =====================================================
 public class LoginDto
 {

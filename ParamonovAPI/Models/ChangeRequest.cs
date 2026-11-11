@@ -9,7 +9,7 @@ public partial class ChangeRequest
 {
     public int IdChange { get; set; }
 
-    public int IdSpecItem { get; set; }
+    public int? IdSpecItem { get; set; }
 
     public int? IdTask { get; set; }
 
@@ -24,6 +24,8 @@ public partial class ChangeRequest
     public int IdCreator { get; set; }
 
     public int? IdApprover { get; set; }
+
+    public string? Status { get; set; }
     [JsonIgnore]
     [ValidateNever]
     public virtual User? IdApproverNavigation { get; set; }

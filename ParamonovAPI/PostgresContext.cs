@@ -37,15 +37,17 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=1234");
+//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+//        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=1234");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
+            .HasPostgresEnum("dev_team", "spec_status", new[] { "draft", "pending_approval", "approved" })
             .HasPostgresEnum("dev_team", "change_status", new[] { "created", "approved", "revoked" })
-            .HasPostgresEnum("dev_team", "project_status", new[] { "draft", "in_progress", "pending_approval", "completed", "closed", "frozen" })
+            .HasPostgresEnum("dev_team", "project_status", new[] { "draft", "in_progress", "pending_approval", "pending_invoice_approval", 
+                "pending_spec_approval", "completed", "closed", "frozen" })
             .HasPostgresEnum("dev_team", "task_status", new[] { "new", "in_progress", "on_review", "done", "cancelled" })
             .HasPostgresEnum("dev_team", "user_role", new[] { "customer", "manager", "developer" })
             .HasPostgresExtension("finpay", "pgcrypto")
@@ -78,6 +80,8 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.IdInvoice).HasColumnName("id_invoice");
             entity.Property(e => e.IdSpecItem).HasColumnName("id_spec_item");
             entity.Property(e => e.IdTask).HasColumnName("id_task");
+            entity.Property(e => e.Status)
+                .HasColumnName("status");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
@@ -99,6 +103,7 @@ public partial class PostgresContext : DbContext
 
             entity.HasOne(d => d.IdSpecItemNavigation).WithMany(p => p.ChangeRequests)
                 .HasForeignKey(d => d.IdSpecItem)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_change_spec_item");
 
             entity.HasOne(d => d.IdTaskNavigation).WithMany(p => p.ChangeRequests)
@@ -134,6 +139,8 @@ public partial class PostgresContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.StartDate).HasColumnName("start_date");
+            entity.Property(i => i.IdProject).HasColumnName("id_project");
+            entity.Property(i => i.TotalCost).HasColumnName("total_cost").HasPrecision(15, 2);
         });
 
         modelBuilder.Entity<Project>(entity =>
@@ -149,10 +156,13 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.IdProject).HasColumnName("id_project");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IdCustomer).HasColumnName("id_customer");
+            entity.Property(p => p.TotalCost).HasColumnName("total_cost").HasPrecision(15, 2);
+            entity.Property(p => p.IdInvoice).HasColumnName("id_invoice");
+            
             entity.Property(e => e.IdTeam).HasColumnName("id_team");
-            entity.Property(e => e.Status).HasColumnName("status")
-                .HasColumnType("project_status");
-                //.HasConversion<string>();
+            entity.Property(e => e.Status).HasColumnName("status");
+                //.HasColumnType("dev_team.project_status");
+                
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
@@ -166,6 +176,10 @@ public partial class PostgresContext : DbContext
                 .HasForeignKey(d => d.IdTeam)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_project_team");
+
+            entity.HasOne(p => p.IdInvoiceNavigation)
+                  .WithOne(i => i.IdProjectNavigation)
+                  .HasForeignKey<Project>(p => p.IdInvoice);
         });
 
         modelBuilder.Entity<SpecificationItem>(entity =>
@@ -276,6 +290,7 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Deadline).HasColumnName("deadline");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IdProject).HasColumnName("id_project");
+            entity.Property(s => s.Status).HasColumnName("status");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
@@ -307,11 +322,7 @@ public partial class PostgresContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("last_name");
             entity.Property(u => u.Role)
-                .HasColumnName("role")
-                .HasConversion<string>();
-            entity.Property(u => u.Role)
-                .HasColumnName("role")
-                .HasColumnType("dev_team.user_role");
+                .HasColumnName("role");
             entity.Property(e => e.Login)
                 .HasMaxLength(100)
                 .HasColumnName("login");

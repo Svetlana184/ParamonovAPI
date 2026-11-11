@@ -17,13 +17,17 @@ public partial class Project
 
     public string? Description { get; set; }
 
-    public ProjectStatus Status { get; set; } = ProjectStatus.draft;
+    public string Status { get; set; } = "draft";
+
+    public int? IdInvoice { get; set; }
+    public decimal TotalCost { get; set; }
     [JsonIgnore]
     [ValidateNever]
     public virtual User IdCustomerNavigation { get; set; } = null!;
     [JsonIgnore]
     [ValidateNever]
     public virtual Team? IdTeamNavigation { get; set; }
+    [JsonIgnore][ValidateNever] public virtual Invoice? IdInvoiceNavigation { get; set; }
     [JsonIgnore]
     [ValidateNever]
     public virtual ICollection<TechnicalSpecification> TechnicalSpecifications { get; set; } = new List<TechnicalSpecification>();

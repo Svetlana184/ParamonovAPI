@@ -16,6 +16,7 @@ public partial class TechnicalSpecification
     public DateOnly? Deadline { get; set; }
 
     public string? Description { get; set; }
+    public string Status { get; set; } = "draft";
     [JsonIgnore]
     [ValidateNever]
     public virtual Project IdProjectNavigation { get; set; } = null!;
@@ -23,3 +24,6 @@ public partial class TechnicalSpecification
     [ValidateNever]
     public virtual ICollection<SpecificationItem> SpecificationItems { get; set; } = new List<SpecificationItem>();
 }
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum SpecStatus { draft, pending_approval, approved }

@@ -8,6 +8,8 @@ namespace ParamonovAPI.Models
         draft,
         in_progress,
         pending_approval,
+        pending_invoice_approval,
+        pending_spec_approval,
         completed,
         closed,
         frozen

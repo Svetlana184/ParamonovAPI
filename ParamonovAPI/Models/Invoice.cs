@@ -16,10 +16,10 @@ public partial class Invoice
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }
-    [JsonIgnore]
-    [ValidateNever]
-    public virtual ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
-    [JsonIgnore]
-    [ValidateNever]
-    public virtual ICollection<TaskList> TaskLists { get; set; } = new List<TaskList>();
+
+    public int? IdProject { get; set; }
+    public decimal TotalCost { get; set; }
+    [JsonIgnore][ValidateNever] public virtual Project? IdProjectNavigation { get; set; }
+    [JsonIgnore][ValidateNever] public virtual ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
+    [JsonIgnore][ValidateNever] public virtual ICollection<TaskList> TaskLists { get; set; } = new List<TaskList>();
 }
