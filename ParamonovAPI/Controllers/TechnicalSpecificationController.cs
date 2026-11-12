@@ -24,6 +24,19 @@ namespace ParamonovAPI.Controllers
             return Ok(item);
         }
 
+        /// <summary>
+        /// Получить ТЗ, привязанное к проекту. По контракту CreateDraft у проекта одно ТЗ.
+        /// Если ТЗ ещё нет (например, старые проекты) — 404.
+        /// </summary>
+        [HttpGet("project/{projectId}")]
+        public async Task<ActionResult<TechnicalSpecification>> GetByProject(int projectId)
+        {
+            var all = await _service.GetAll();
+            var spec = all.FirstOrDefault(s => s.IdProject == projectId);
+            if (spec == null) return NotFound();
+            return Ok(spec);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(TechnicalSpecification item)
         {

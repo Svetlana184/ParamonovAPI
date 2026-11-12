@@ -24,6 +24,17 @@ namespace ParamonovAPI.Controllers
             return Ok(item);
         }
 
+        /// <summary>
+        /// Пункты конкретного ТЗ.
+        /// </summary>
+        [HttpGet("by-spec/{specId}")]
+        public async Task<ActionResult<IEnumerable<SpecificationItem>>> GetBySpec(int specId)
+        {
+            var all = await _service.GetAll();
+            var items = all.Where(i => i.IdSpec == specId);
+            return Ok(items);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(SpecificationItem item)
         {

@@ -79,5 +79,63 @@ namespace ParamonovAPI.Controllers
             await _service.Delete(id);
             return NoContent();
         }
+
+        [HttpPost("draft")]
+        public async Task<IActionResult> CreateDraft([FromBody] CreateProjectDraftDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var customer = await _context.Users.FindAsync(dto.IdCustomer);
+            if (customer == null)
+                return BadRequest($"Пользователь с id={dto.IdCustomer} не найден.");
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var project = new Project
+                {
+                    IdCustomer = dto.IdCustomer,
+                    IdTeam = null,
+                    Name = string.IsNullOrWhiteSpace(dto.Name) ? "Новый проект" : dto.Name.Trim(),
+                    Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
+                    Status = ProjectStatus.draft
+                };
+                _context.Projects.Add(project);
+                await _context.SaveChangesAsync();
+
+                _context.TechnicalSpecifications.Add(new TechnicalSpecification
+                {
+                    IdProject = project.IdProject,
+                    Name = project.Name
+                });
+                await _context.SaveChangesAsync();
+
+                var invoice = new Invoice
+                {
+                    Name = project.Name,
+                    Cost = 0m
+                };
+                _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync();
+
+                _context.TaskLists.Add(new TaskList
+                {
+                    IdInvoice = invoice.IdInvoice,
+                    Name = project.Name,
+                    CompletionPercent = 0m
+                });
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return CreatedAtAction(nameof(GetById), new { id = project.IdProject }, project);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, $"Ошибка при создании черновика: {ex.Message}");
+            }
+        }
     }
 }
