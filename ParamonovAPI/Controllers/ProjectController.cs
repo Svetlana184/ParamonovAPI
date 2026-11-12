@@ -23,12 +23,9 @@ namespace ParamonovAPI.Controllers
         public async Task<ActionResult<IEnumerable<Project>>> GetAll()
             => Ok(await _service.GetAll());
 
-        [HttpGet("my")]
-        public async Task<ActionResult<IEnumerable<Project>>> GetMyProjects()
+        [HttpGet("my/{userId}")]
+        public async Task<ActionResult<IEnumerable<Project>>> GetMyProjects(int userId)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out int userId))
-                return Unauthorized();
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return Unauthorized();
