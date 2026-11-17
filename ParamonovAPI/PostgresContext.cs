@@ -83,7 +83,8 @@ public partial class PostgresContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasColumnType("dev_team.change_status");
+                .HasMaxLength(50);
+                //.HasColumnType("dev_team.change_status");
             entity.HasOne(d => d.IdApproverNavigation).WithMany(p => p.ChangeRequestIdApproverNavigations)
                 .HasForeignKey(d => d.IdApprover)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -223,7 +224,8 @@ public partial class PostgresContext : DbContext
                 .HasColumnName("planned_hours");
             entity.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasColumnType("dev_team.task_status");
+                .HasMaxLength(50);
+                //.HasColumnType("dev_team.task_status");
             entity.HasOne(d => d.IdDeveloperNavigation).WithMany(p => p.Tasks)
                 .HasForeignKey(d => d.IdDeveloper)
                 .OnDelete(DeleteBehavior.SetNull)

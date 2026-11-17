@@ -95,7 +95,7 @@ namespace ParamonovAPI.Controllers
         {
             var all = tasks?.ToList() ?? new List<TaskModel>();
             if (all.Count == 0) return 0m;
-            int done = all.Count(t => t.Status == TaskStatus.done);
+            int done = all.Count(t => t.Status == "done");
             return Math.Round(100m * done / all.Count, 2);
         }
     }

@@ -130,7 +130,7 @@ namespace ParamonovAPI.Controllers
             if (project.IdInvoice == null)
                 return BadRequest("У проекта нет счёта");
 
-            var invoice = project.IdInvoiceNavigation;
+            var invoice = _context.Invoices.FirstOrDefault(i => i.IdInvoice == project.IdInvoice);
             if (invoice == null)
                 return BadRequest("Счёт проекта не найден");
 
@@ -146,12 +146,12 @@ namespace ParamonovAPI.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                var now = DateTime.UtcNow;
+                var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
                 // 5.1. Удаляем старые created-запросы этого счёта (защита от дублей)
                 var oldCreated = await _context.ChangeRequests
                     .Where(c => c.IdInvoice == invoice.IdInvoice &&
-                                c.Status == Models.ChangeStatus.created)
+                                c.Status == "created")
                     .ToListAsync();
 
                 if (oldCreated.Count > 0)
@@ -167,7 +167,7 @@ namespace ParamonovAPI.Controllers
                         $"Сроки: {invoice.StartDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "—"} — " +
                         $"{invoice.EndDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "—"}",
                     CreatedAt = now,
-                    Status = Models.ChangeStatus.created,
+                    Status = "created",
                     IdCreator = userId
                 });
 
@@ -186,7 +186,7 @@ namespace ParamonovAPI.Controllers
                             $" | Факт: {t.ActualHours?.ToString("N2", CultureInfo.InvariantCulture) ?? "—"} ч" +
                             $" | Стоимость: {t.Cost?.ToString("N2", CultureInfo.InvariantCulture) ?? "—"} ₽",
                         CreatedAt = now,
-                        Status = Models.ChangeStatus.created,
+                        Status = "created",
                         IdCreator = userId
                     });
                 }
@@ -205,7 +205,7 @@ namespace ParamonovAPI.Controllers
                         Name = $"Пункт ТЗ «{si.Name}»",
                         Description = si.Description ?? "Без описания",
                         CreatedAt = now,
-                        Status = Models.ChangeStatus.created,
+                        Status = "created",
                         IdCreator = userId
                     });
                 }
@@ -219,7 +219,7 @@ namespace ParamonovAPI.Controllers
                         Name = "Согласование изменений по проекту",
                         Description = "Изменения по счёту и задачам",
                         CreatedAt = now,
-                        Status = Models.ChangeStatus.created,
+                        Status = "created",
                         IdCreator = userId
                     });
                 }

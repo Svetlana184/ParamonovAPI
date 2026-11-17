@@ -21,7 +21,7 @@ public partial class ChangeRequest
 
     public DateTime CreatedAt { get; set; }
 
-    public ChangeStatus Status { get; set; } = ChangeStatus.created;
+    public string Status { get; set; } = "created";
 
     public int IdCreator { get; set; }
 

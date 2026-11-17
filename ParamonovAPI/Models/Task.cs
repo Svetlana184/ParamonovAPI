@@ -13,7 +13,7 @@ public partial class Task
 
     public string? Description { get; set; }
 
-    public ParamonovAPI.Models.TaskStatus Status { get; set; } = TaskStatus.@new;
+    public string Status { get; set; } = "new";
 
     public decimal? PlannedHours { get; set; }
 

@@ -76,7 +76,7 @@ namespace ParamonovAPI.Controllers
             var all = list.Tasks?.ToList() ?? new List<TaskModel>();
             list.CompletionPercent = all.Count == 0
                 ? 0m
-                : Math.Round(100m * all.Count(t => t.Status == TaskStatus.done) / all.Count, 2);
+                : Math.Round(100m * all.Count(t => t.Status == "done") / all.Count, 2);
 
             await _context.SaveChangesAsync();
         }
