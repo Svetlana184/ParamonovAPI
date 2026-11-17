@@ -24,6 +24,13 @@ namespace ParamonovAPI.Controllers
             return Ok(item);
         }
 
+        [HttpGet("by-invoice/{invoiceId}")]
+        public async Task<ActionResult<IEnumerable<ChangeRequest>>> GetByInvoice(int invoiceId)
+        {
+            var all = await _service.GetAll();
+            return Ok(all.Where(c => c.IdInvoice == invoiceId));
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(ChangeRequest item)
         {

@@ -13,6 +13,8 @@ public partial class Task
 
     public string? Description { get; set; }
 
+    public TaskStatus Status { get; set; } = TaskStatus.@new;
+
     public decimal? PlannedHours { get; set; }
 
     public decimal? ActualHours { get; set; }
@@ -20,12 +22,15 @@ public partial class Task
     public decimal? Cost { get; set; }
 
     public int? IdDeveloper { get; set; }
+
     [JsonIgnore]
     [ValidateNever]
     public virtual ICollection<ChangeRequest> ChangeRequests { get; set; } = new List<ChangeRequest>();
+
     [JsonIgnore]
     [ValidateNever]
     public virtual User? IdDeveloperNavigation { get; set; }
+
     [JsonIgnore]
     [ValidateNever]
     public virtual TaskList IdTaskListNavigation { get; set; } = null!;

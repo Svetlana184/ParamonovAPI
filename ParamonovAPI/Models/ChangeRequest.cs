@@ -21,21 +21,28 @@ public partial class ChangeRequest
 
     public DateTime CreatedAt { get; set; }
 
+    public ChangeStatus Status { get; set; } = ChangeStatus.created;
+
     public int IdCreator { get; set; }
 
     public int? IdApprover { get; set; }
+
     [JsonIgnore]
     [ValidateNever]
     public virtual User? IdApproverNavigation { get; set; }
+
     [JsonIgnore]
     [ValidateNever]
     public virtual User IdCreatorNavigation { get; set; } = null!;
+
     [JsonIgnore]
     [ValidateNever]
     public virtual Invoice? IdInvoiceNavigation { get; set; }
+
     [JsonIgnore]
     [ValidateNever]
     public virtual SpecificationItem IdSpecItemNavigation { get; set; } = null!;
+
     [JsonIgnore]
     [ValidateNever]
     public virtual Task? IdTaskNavigation { get; set; }

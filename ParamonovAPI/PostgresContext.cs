@@ -81,7 +81,9 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
-
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasColumnType("dev_team.change_status");
             entity.HasOne(d => d.IdApproverNavigation).WithMany(p => p.ChangeRequestIdApproverNavigations)
                 .HasForeignKey(d => d.IdApprover)
                 .OnDelete(DeleteBehavior.SetNull)
@@ -143,16 +145,18 @@ public partial class PostgresContext : DbContext
             entity.ToTable("project", "dev_team");
 
             entity.HasIndex(e => e.IdCustomer, "idx_project_customer");
-
             entity.HasIndex(e => e.IdTeam, "idx_project_team");
+
+            entity.HasIndex(e => e.IdInvoice, "ux_project_invoice").IsUnique();
 
             entity.Property(e => e.IdProject).HasColumnName("id_project");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IdCustomer).HasColumnName("id_customer");
             entity.Property(e => e.IdTeam).HasColumnName("id_team");
+            entity.Property(e => e.IdInvoice).HasColumnName("id_invoice");
+
             entity.Property(e => e.Status).HasColumnName("status")
                 .HasColumnType("project_status");
-                //.HasConversion<string>();
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
@@ -166,6 +170,12 @@ public partial class PostgresContext : DbContext
                 .HasForeignKey(d => d.IdTeam)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_project_team");
+
+            entity.HasOne(d => d.IdInvoiceNavigation)
+                .WithOne(p => p.Project)
+                .HasForeignKey<Project>(d => d.IdInvoice)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_project_invoice");
         });
 
         modelBuilder.Entity<SpecificationItem>(entity =>
@@ -211,7 +221,9 @@ public partial class PostgresContext : DbContext
             entity.Property(e => e.PlannedHours)
                 .HasPrecision(7, 2)
                 .HasColumnName("planned_hours");
-
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasColumnType("dev_team.task_status");
             entity.HasOne(d => d.IdDeveloperNavigation).WithMany(p => p.Tasks)
                 .HasForeignKey(d => d.IdDeveloper)
                 .OnDelete(DeleteBehavior.SetNull)
