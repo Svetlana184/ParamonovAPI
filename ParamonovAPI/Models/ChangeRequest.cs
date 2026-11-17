@@ -9,7 +9,7 @@ public partial class ChangeRequest
 {
     public int IdChange { get; set; }
 
-    public int IdSpecItem { get; set; }
+    public int? IdSpecItem { get; set; }
 
     public int? IdTask { get; set; }
 
@@ -41,7 +41,7 @@ public partial class ChangeRequest
 
     [JsonIgnore]
     [ValidateNever]
-    public virtual SpecificationItem IdSpecItemNavigation { get; set; } = null!;
+    public virtual SpecificationItem? IdSpecItemNavigation { get; set; } = null!;
 
     [JsonIgnore]
     [ValidateNever]

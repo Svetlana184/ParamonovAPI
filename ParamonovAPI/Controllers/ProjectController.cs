@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ParamonovAPI.Models;
 using ParamonovAPI.Services;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace ParamonovAPI.Controllers
@@ -108,10 +109,134 @@ namespace ParamonovAPI.Controllers
         public async Task<IActionResult> Submit(int id)
             => await ChangeStatus(id, ProjectStatus.draft, ProjectStatus.in_progress);
 
-        /// <summary>in_progress → pending_approval</summary>
+        /// <summary>
+        /// in_progress → pending_approval.
+        /// При отправке создаются ChangeRequest (status=created) по счёту, задачам и пунктам ТЗ.
+        /// </summary>
         [HttpPost("{id}/send-invoice")]
         public async Task<IActionResult> SendInvoice(int id)
-            => await ChangeStatus(id, ProjectStatus.in_progress, ProjectStatus.pending_approval);
+        {
+            // 1. Загружаем проект со счётом, задачами и пунктами ТЗ
+            var project = await _context.Projects
+                .FirstOrDefaultAsync(p => p.IdProject == id);
+
+            if (project == null) return NotFound();
+
+            // 2. Проверка статуса
+            if (project.Status != ProjectStatus.in_progress)
+                return BadRequest($"Ожидался статус in_progress, текущий {project.Status}");
+
+            // 3. Проверка счёта
+            if (project.IdInvoice == null)
+                return BadRequest("У проекта нет счёта");
+
+            var invoice = project.IdInvoiceNavigation;
+            if (invoice == null)
+                return BadRequest("Счёт проекта не найден");
+
+            // 4. Автор change request — из заголовка X-User-Id
+            if (!Request.Headers.TryGetValue("X-User-Id", out var h) ||
+                !int.TryParse(h.ToString(), out int userId))
+                return Unauthorized();
+
+            var creator = await _context.Users.FindAsync(userId);
+            if (creator == null) return Unauthorized();
+
+            // 5. Транзакция: удаление старых created + создание новых + смена статуса
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var now = DateTime.UtcNow;
+
+                // 5.1. Удаляем старые created-запросы этого счёта (защита от дублей)
+                var oldCreated = await _context.ChangeRequests
+                    .Where(c => c.IdInvoice == invoice.IdInvoice &&
+                                c.Status == Models.ChangeStatus.created)
+                    .ToListAsync();
+
+                if (oldCreated.Count > 0)
+                    _context.ChangeRequests.RemoveRange(oldCreated);
+
+                // 5.2. Счёт — как согласуемый документ
+                _context.ChangeRequests.Add(new ChangeRequest
+                {
+                    IdInvoice = invoice.IdInvoice,
+                    Name = $"Согласование счёта «{invoice.Name}»",
+                    Description =
+                        $"Стоимость: {invoice.Cost.ToString("N2", CultureInfo.InvariantCulture)} ₽. " +
+                        $"Сроки: {invoice.StartDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "—"} — " +
+                        $"{invoice.EndDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "—"}",
+                    CreatedAt = now,
+                    Status = Models.ChangeStatus.created,
+                    IdCreator = userId
+                });
+
+                // 5.3. Задачи — по одной на каждую
+                var allTasks = invoice.TaskLists.SelectMany(tl => tl.Tasks).ToList();
+                foreach (var t in allTasks)
+                {
+                    _context.ChangeRequests.Add(new ChangeRequest
+                    {
+                        IdInvoice = invoice.IdInvoice,
+                        IdTask = t.IdTask,
+                        Name = $"Задача #{t.IdTask}",
+                        Description =
+                            (t.Description ?? "Без описания") +
+                            $" | План: {t.PlannedHours?.ToString("N2", CultureInfo.InvariantCulture) ?? "—"} ч" +
+                            $" | Факт: {t.ActualHours?.ToString("N2", CultureInfo.InvariantCulture) ?? "—"} ч" +
+                            $" | Стоимость: {t.Cost?.ToString("N2", CultureInfo.InvariantCulture) ?? "—"} ₽",
+                        CreatedAt = now,
+                        Status = Models.ChangeStatus.created,
+                        IdCreator = userId
+                    });
+                }
+
+                // 5.4. Пункты ТЗ — по одному на каждый
+                var allSpecItems = project.TechnicalSpecifications
+                    .SelectMany(s => s.SpecificationItems)
+                    .ToList();
+
+                foreach (var si in allSpecItems)
+                {
+                    _context.ChangeRequests.Add(new ChangeRequest
+                    {
+                        IdInvoice = invoice.IdInvoice,
+                        IdSpecItem = si.IdItem,
+                        Name = $"Пункт ТЗ «{si.Name}»",
+                        Description = si.Description ?? "Без описания",
+                        CreatedAt = now,
+                        Status = Models.ChangeStatus.created,
+                        IdCreator = userId
+                    });
+                }
+
+                // 5.5. Fallback: если задач и пунктов нет — один сводный запрос
+                if (allTasks.Count == 0 && allSpecItems.Count == 0)
+                {
+                    _context.ChangeRequests.Add(new ChangeRequest
+                    {
+                        IdInvoice = invoice.IdInvoice,
+                        Name = "Согласование изменений по проекту",
+                        Description = "Изменения по счёту и задачам",
+                        CreatedAt = now,
+                        Status = Models.ChangeStatus.created,
+                        IdCreator = userId
+                    });
+                }
+
+                // 5.6. Смена статуса
+                project.Status = ProjectStatus.pending_approval;
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return StatusCode(500, $"Ошибка при создании change request: {ex.Message}");
+            }
+        }
 
         /// <summary>pending_approval → in_progress</summary>
         [HttpPost("{id}/finish-approval")]
